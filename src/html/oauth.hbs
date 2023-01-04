@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Oauth page</title>
+  </head>
+  <body>
+    <h1>This is the oauth page result</h1>
+
+    <ul>
+        <li><b>Name: </b><span id="user-name"/></li>
+        <li><b>Email: </b><span id="user-email"/></li>
+    </ul>
+
+    <button id="go-to-private-area">Go to private area</button>
+
+    <script type="text/javascript">
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        const params = new URLSearchParams(document.location.hash.substring(1));
+
+        const access_token = params.get('access_token');
+
+        const result = await fetchTwitchUser(access_token);
+
+        const {display_name, email, broadcaster_type} = (await fetchTwitchUser(access_token)).data.shift();
+
+
+        document.getElementById('user-name').textContent = display_name;
+        document.getElementById('user-email').textContent = email;
+
+        document.getElementById('go-to-private-area').addEventListener('click', () => goToLogin(access_token));
+
+
+        async function fetchTwitchUser(accessToken) {
+            const response = await fetch('https://api.twitch.tv/helix/users', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Client-id': '{{TWITCH_CLIENT_ID}}'
+                }
+            });
+
+            return response.json();
+        }
+
+        function goToLogin(token) {
+            const url = new URL('https://{{APP_DOMAIN}}/login');
+            url.searchParams.set('token', token);
+
+            window.location.href = url.toString();
+        }
+    });
+    </script>
+  </body>
+</html>
